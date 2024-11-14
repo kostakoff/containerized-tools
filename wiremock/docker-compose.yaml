@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  application:
+    image: docker.io/kostakoff/containerized-tools:wiremock3.5.2
+    ports:
+      - '8080:8080'
+    environment:
+      WIREMOCK_OPTIONS: '--port 8080 --bind-address 0.0.0.0 --root-dir /app/wiremock --enable-stub-cors --async-response-enabled --async-response-threads 15 --local-response-templating --global-response-templating'
+    networks:
+      - docker-compose-network
+
+networks:
+  docker-compose-network:
+    ipam:
+      config:
+        - subnet: 172.16.16.0/24
