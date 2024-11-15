@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app.fullName" . }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: '{{ include "app.fullName" . }}'
+      release: {{ .Release.Name | quote }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        {{- include "chart.labels" . | nindent 8 }}
+        app: {{ include "app.fullName" . }}
+        chart: {{ template "app.chart" . }}
+        release: {{ .Release.Name | quote }}
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+    spec:
+{{- if .Values.images.pullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.images.pullSecret }}
+{{- end }}
+      serviceAccountName: {{ .Values.accountName }}
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ include "app.fullName" . }}-nginx
+        - name: service-cert-secret
+          secret:
+            defaultMode: 420
+            secretName: {{ include "app.fullName" . }}-service-cert
+        - name: wiremock-files
+          configMap:
+            name: {{ include "app.fullName" . }}-files
+        - name: wiremock-mappings
+          configMap:
+            name: {{ include "app.fullName" . }}-mappings
+## containers block
+      containers:
+      - name: nginx-proxy
+        image: {{ include "nginxproxy.image" . }}:{{ .Values.images.nginxproxy.imageTag }}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8443
+          protocol: TCP
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /health
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 20
+          periodSeconds: 30
+        readinessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /health
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 10
+          periodSeconds: 20
+        resources:
+          requests:
+            memory: '{{ .Values.supportservices.nginxproxy.resources.requests.memory }}'
+            cpu: '{{ .Values.supportservices.nginxproxy.resources.requests.cpu }}'
+          limits:
+            memory: '{{ .Values.supportservices.nginxproxy.resources.limits.memory }}'
+            cpu: '{{ .Values.supportservices.nginxproxy.resources.limits.cpu }}'
+        volumeMounts:
+          - name: nginx-config
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+          - name: service-cert-secret
+            mountPath: /etc/pki/private
+### app
+      - name: wiremock
+        env:
+          - name: TZ
+            value: Etc/Greenwich
+          - name: LANG
+            value: C.UTF-8
+          - name: WIREMOCK_OPTIONS
+            value: '{{ .Values.wiremock.options }}'
+        image: {{ include "wiremock.image" . }}:{{ .Values.images.wiremock.imageTag }}
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /__admin/mappings
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 30
+        readinessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /__admin/mappings
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 20
+        resources:
+          requests:
+            memory: '{{ .Values.wiremock.resources.requests.memory }}'
+            cpu: '{{ .Values.wiremock.resources.requests.cpu }}'
+          limits:
+            memory: '{{ .Values.wiremock.resources.limits.memory }}'
+            cpu: '{{ .Values.wiremock.resources.limits.cpu }}'
+        volumeMounts:
+          - name: wiremock-files
+            mountPath: /app/wiremock/__files
+          - name: wiremock-mappings
+            mountPath: /app/wiremock/mappings
+        terminationMessagePath: FallbackToLogsOnError

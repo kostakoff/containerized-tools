@@ -1,0 +1,46 @@
+projectName: my
+applicationName: wiremock
+appNamespace: applications
+k8sCluster: k8s.localhost
+
+replicas: 1
+accountName: default
+
+wiremock:
+  javaOpts: '-Djdk.tls.client.protocols=TLSv1.2 -XX:MinRAMPercentage=80 -XX:MaxRAMPercentage=90'
+  server:
+    ingressEnabled: true
+    url: wiremock.k8s.localhost
+  options: '--port 8080 --bind-address 0.0.0.0 --root-dir /app/wiremock --enable-stub-cors --async-response-enabled --async-response-threads 15 --local-response-templating --global-response-templating'
+  resources:
+    requests:
+      memory: '256Mi'
+      cpu: '100m'
+    limits:
+      memory: '1024Mi'
+      cpu: '1'
+
+supportservices:
+  nginxproxy:
+    resources:
+      requests:
+        memory: '128Mi'
+        cpu: '100m'
+      limits:
+        memory: '512Mi'
+        cpu: '500m'
+
+images:
+  pullSecret: 
+  wiremock:
+    registry: docker.io
+    repository: kostakoff
+    imageName: containerized-tools
+    imageTag: wiremock3.5.2
+  nginxproxy:
+    registry: docker.io
+    repository: kostakoff
+    imageName: rocky-base-images
+    imageTag: 8-nginx
+
+

@@ -1,0 +1,14 @@
+apiVersion: v2
+name: my-wiremock
+appVersion: 3.5.2 #__REPLACEAPPVERSION__
+description: A Helm chart to deploy wiremock standalone
+type: application
+version: 3.5.2 #__REPLACEAPPVERSION__
+
+keywords:
+  - wiremock
+
+engine: gotpl
+
+maintainers:
+  - name: kostakoff

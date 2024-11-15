@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullName" . }}-mappings
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+data:
+{{ ( $.Files.Glob "files/mappings/**.json").AsConfig | nindent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullName" . }}-files
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+data:
+{{ ( $.Files.Glob "files/files/**.json").AsConfig | nindent 2 }}
