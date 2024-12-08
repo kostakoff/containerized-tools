@@ -28,3 +28,9 @@ jobs:
     - name: Push ssh-server image
       run: |
         docker push docker.io/kostakoff/containerized-tools:ssh-server
+    - name: Build newman image
+      run: |
+        docker build ./newman --tag docker.io/kostakoff/containerized-tools:newman
+    - name: Push newman image
+      run: |
+        docker push docker.io/kostakoff/containerized-tools:newman
