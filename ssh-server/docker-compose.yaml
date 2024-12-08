@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  application:
+    image: docker.io/kostakoff/containerized-tools:ssh-server
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - '2222:2222'
+    networks:
+      - docker-compose-network
+
+networks:
+  docker-compose-network:
+    ipam:
+      config:
+        - subnet: 172.16.16.0/24

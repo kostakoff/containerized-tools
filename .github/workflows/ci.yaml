@@ -22,4 +22,9 @@ jobs:
     - name: Push wiremock image
       run: |
         docker push docker.io/kostakoff/containerized-tools:wiremock3.5.2
-  
+    - name: Build ssh-server image
+      run: |
+        docker build ./ssh-server --tag docker.io/kostakoff/containerized-tools:ssh-server
+    - name: Push ssh-server image
+      run: |
+        docker push docker.io/kostakoff/containerized-tools:ssh-server
