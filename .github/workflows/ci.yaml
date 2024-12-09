@@ -34,3 +34,9 @@ jobs:
     - name: Push newman image
       run: |
         docker push docker.io/kostakoff/containerized-tools:newman
+    - name: Build support-tools image
+      run: |
+        docker build ./support-tools --tag docker.io/kostakoff/containerized-tools:support-tools
+    - name: Push support-tools image
+      run: |
+        docker push docker.io/kostakoff/containerized-tools:support-tools
